@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HireGrid — Smart Job Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --accent: #7c6bff;
+    --accent2: #a78bfa;
+    --accent-glow: rgba(124,107,255,0.15);
+    --text: #f0eeff;
+    --muted: #888899;
+    --muted2: #555566;
+    --green: #34d399;
+    --green-bg: rgba(52,211,153,0.1);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.1);
+    --amber: #fbbf24;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  h1,h2,h3,h4,.brand,.nav-links,.tab-btn { font-family: 'Syne', sans-serif; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.88);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+    color: var(--text); display: flex; align-items: center; gap: 8px;
+  }
+  .brand-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 12px var(--accent);
+  }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link {
+    font-size: 13px; font-weight: 600;
+    padding: 7px 14px; border-radius: 8px;
+    border: none; background: transparent;
+    color: var(--muted); cursor: pointer; transition: all .2s;
+  }
+  .nav-link:hover { color: var(--text); background: var(--surface2); }
+  .nav-link.active { color: var(--text); background: var(--surface2); }
+  .nav-user { display: flex; align-items: center; gap: 8px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent-glow); border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--accent2);
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer;
+    transition: all .2s; letter-spacing: 0.3px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 0 24px rgba(124,107,255,0.3);
+  }
+  .btn-primary:hover { background: #9580ff; box-shadow: 0 0 32px rgba(124,107,255,0.5); transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent; color: var(--muted); border: 1px solid var(--border2);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--accent); background: var(--accent-glow); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-lg { padding: 13px 28px; font-size: 15px; }
+  .btn-full { width: 100%; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* AUTH */
+  .auth-wrap {
+    min-height: calc(100vh - 64px);
+    display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+  .auth-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 2.5rem;
+    width: 100%; max-width: 420px; position: relative; overflow: hidden;
+  }
+  .auth-card::before {
+    content: ''; position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(124,107,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .auth-title { font-size: 26px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
+  .auth-sub { color: var(--muted); font-size: 14px; margin-bottom: 2rem; }
+  .tab-row {
+    display: flex; background: var(--surface2); border-radius: 10px;
+    padding: 4px; margin-bottom: 1.8rem;
+  }
+  .tab-btn {
+    flex: 1; padding: 8px; border-radius: 7px; border: none;
+    background: transparent; color: var(--muted); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .2s; font-family: 'Syne', sans-serif;
+  }
+  .tab-btn.active { background: var(--accent); color: #fff; box-shadow: 0 2px 12px rgba(124,107,255,0.4); }
+
+  /* FORMS */
+  .form-group { margin-bottom: 1rem; }
+  label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--muted); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  input, textarea, select {
+    width: 100%; padding: 11px 14px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 10px; color: var(--text); font-size: 14px;
+    font-family: 'DM Sans', sans-serif; transition: border-color .2s, box-shadow .2s; outline: none;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,107,255,0.12); }
+  input::placeholder, textarea::placeholder { color: var(--muted2); }
+  textarea { resize: vertical; min-height: 90px; }
+
+  /* ALERTS */
+  .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 1rem; display: none; align-items: center; gap: 8px; }
+  .alert.show { display: flex; }
+  .alert-success { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+  .alert-error { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+
+  /* MAIN */
+  .main-wrap { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem; }
+  .post-wrap { max-width: 620px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+  /* HERO */
+  .hero-strip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 2rem 2.5rem; margin-bottom: 2rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-strip::after {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(124,107,255,0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .hero-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .hero-sub { font-size: 13px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
+
+  /* STATS */
+  .stats-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 2rem; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.2rem 1.4rem; position: relative; overflow: hidden;
+  }
+  .stat-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;
+  }
+  .section-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+  .section-sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
+
+  /* JOBS GRID */
+  .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px,1fr)); gap: 16px; }
+  .job-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.4rem; cursor: pointer;
+    transition: all .25s; position: relative; overflow: hidden;
+  }
+  .job-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 40px rgba(124,107,255,0.12); }
+  .job-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0; transition: opacity .25s;
+  }
+  .job-card:hover::before { opacity: 1; }
+  .job-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .company-logo {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; color: var(--accent2);
+  }
+  .open-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+    background: var(--accent-glow); color: var(--accent2);
+    border: 1px solid rgba(124,107,255,0.3); padding: 3px 9px; border-radius: 20px;
+    font-family: 'Syne', sans-serif;
+  }
+  .applied-badge {
+    font-size: 10px; font-weight: 700;
+    background: var(--green-bg); color: var(--green);
+    border: 1px solid rgba(52,211,153,0.2); padding: 3px 9px; border-radius: 20px;
+    font-family: 'Syne', sans-serif;
+  }
+  .job-title { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 3px; font-family: 'Syne', sans-serif; }
+  .job-company { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .job-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 14px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .job-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--border); padding-top: 12px;
+  }
+  .job-meta { font-size: 12px; color: var(--muted2); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; width: 100%; max-width: 540px;
+    max-height: 88vh; overflow-y: auto; padding: 2rem;
+    transform: translateY(20px); transition: transform .25s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.2rem; gap: 1rem; }
+  .modal-title { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; }
+  .modal-company { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .close-btn {
+    width: 32px; height: 32px; border-radius: 8px; background: var(--surface2);
+    border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0;
+  }
+  .close-btn:hover { color: var(--text); border-color: var(--border2); }
+  .modal-desc {
+    font-size: 14px; line-height: 1.8; color: rgba(240,238,255,0.75);
+    margin-bottom: 1.4rem; padding: 1rem;
+    background: var(--surface2); border-radius: 10px; border: 1px solid var(--border);
+  }
+  .modal-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.4rem; }
+  .tag { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; font-family: 'Syne', sans-serif; }
+  .tag-purple { background: var(--accent-glow); color: var(--accent2); border: 1px solid rgba(124,107,255,0.25); }
+  .tag-green { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+  .tag-amber { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+
+  /* PANEL CARD */
+  .panel-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 2rem;
+  }
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  /* EMPTY */
+  .empty-state { text-align: center; padding: 5rem 2rem; color: var(--muted); }
+  .empty-icon { font-size: 48px; margin-bottom: 1rem; opacity: 0.4; }
+  .empty-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+
+  /* SPINNER */
+  .spinner {
+    width: 20px; height: 20px; border: 2px solid var(--border2);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .7s linear infinite; display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface); border: 1px solid var(--border2); border-radius: 12px;
+    padding: 12px 16px; font-size: 13px; min-width: 260px; max-width: 340px;
+    display: flex; align-items: center; gap: 10px;
+    animation: toastIn .3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--red); }
+  @keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+    .hero-strip { flex-direction: column; align-items: flex-start; }
+    .section-header { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="brand"><span class="brand-dot"></span>HireGrid</div>
+  <div class="nav-right" id="nav-auth">
+    <button class="btn btn-ghost btn-sm" onclick="showAuth('login')">Log in</button>
+    <button class="btn btn-primary btn-sm" onclick="showAuth('register')">Sign up</button>
+  </div>
+  <div class="nav-right" id="nav-app" style="display:none">
+    <div class="nav-links">
+      <button class="nav-link active" id="nl-browse" onclick="goPage('browse')">Browse Jobs</button>
+      <button class="nav-link" id="nl-post" onclick="goPage('post')">Post a Job</button>
+    </div>
+    <div class="nav-user">
+      <div class="avatar" id="user-avatar">?</div>
+      <span id="user-name-nav" style="font-size:13px;color:var(--muted)"></span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<!-- ── AUTH PAGE ── -->
+<div class="page active" id="page-auth">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-title">Welcome to HireGrid</div>
+      <div class="auth-sub">The smart job board, powered by microservices.</div>
+      <div class="tab-row">
+        <button class="tab-btn active" id="tb-login" onclick="switchTab('login')">Log in</button>
+        <button class="tab-btn" id="tb-reg" onclick="switchTab('register')">Sign up</button>
+      </div>
+      <div id="auth-alert" class="alert"></div>
+      <!-- LOGIN -->
+      <div id="form-login">
+        <div class="form-group"><label>Email</label><input type="email" id="li-email" placeholder="you@example.com"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="li-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <button class="btn btn-primary btn-full btn-lg" id="li-btn" onclick="doLogin()">Log in</button>
+      </div>
+      <!-- REGISTER -->
+      <div id="form-reg" style="display:none">
+        <div class="form-group"><label>Full name</label><input type="text" id="rg-name" placeholder="Your name"/></div>
+        <div class="form-group"><label>Email</label><input type="email" id="rg-email" placeholder="you@example.com"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="rg-pass" placeholder="At least 6 characters" onkeydown="if(event.key==='Enter')doRegister()"/></div>
+        <button class="btn btn-primary btn-full btn-lg" id="rg-btn" onclick="doRegister()">Create account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BROWSE PAGE ── -->
+<div class="page" id="page-browse">
+  <div class="main-wrap">
+    <div class="hero-strip">
+      <div>
+        <div class="hero-title" id="hero-greet">Good evening 👋</div>
+        <div class="hero-sub">Find your next role — apply in one click.<br>Kafka-powered notifications confirm every application instantly.</div>
+      </div>
+      <button class="btn btn-primary" onclick="goPage('post')">+ Post a Job</button>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-num" id="st-jobs">—</div><div class="stat-label">Open positions</div></div>
+      <div class="stat-card"><div class="stat-num" id="st-cos">—</div><div class="stat-label">Companies hiring</div></div>
+      <div class="stat-card"><div class="stat-num" id="st-apps">0</div><div class="stat-label">Your applications</div></div>
+    </div>
+    <div class="section-header">
+      <div>
+        <div class="section-title">Open Positions</div>
+        <div class="section-sub" id="jobs-sub">Loading...</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="loadJobs()">↺ Refresh</button>
+    </div>
+    <div id="jobs-container">
+      <div class="empty-state"><div class="spinner"></div><p style="margin-top:1rem">Loading jobs...</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── POST JOB PAGE ── -->
+<div class="page" id="page-post">
+  <div class="post-wrap">
+    <div class="section-title" style="margin-bottom:4px">Post a Job</div>
+    <div class="section-sub" style="margin-bottom:1.5rem">Fill in the details — applicants get email confirmations via Kafka.</div>
+    <div class="panel-card">
+      <div id="post-alert" class="alert"></div>
+      <div class="form-group"><label>Job title</label><input type="text" id="p-title" placeholder="e.g. Senior Backend Engineer"/></div>
+      <div class="form-group"><label>Company name</label><input type="text" id="p-company" placeholder="e.g. Acme Corporation"/></div>
+      <div class="form-group"><label>Job description</label><textarea id="p-desc" rows="5" placeholder="Describe the role, requirements, and what makes it exciting..."></textarea></div>
+      <div class="divider"></div>
+      <button class="btn btn-primary btn-full btn-lg" id="post-btn" onclick="doPostJob()">Publish Job Listing</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── JOB DETAIL MODAL ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="m-title"></div>
+        <div class="modal-company" id="m-company"></div>
+      </div>
+      <button class="close-btn" onclick="closeModalDirect()">×</button>
+    </div>
+    <div class="modal-tags" id="m-tags"></div>
+    <div class="modal-desc" id="m-desc"></div>
+    <div id="modal-alert" class="alert"></div>
+    <button class="btn btn-primary btn-full btn-lg" id="m-apply-btn" onclick="doApply()">Apply Now</button>
+    <p style="font-size:12px;color:var(--muted2);text-align:center;margin-top:10px">
+      A confirmation email is sent via Kafka → Notification Service
+    </p>
+  </div>
+</div>
+
+<!-- ── TOASTS ── -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+const USER_URL = '';
+const JOB_URL  = '';
+
+let token = localStorage.getItem('hg_token') || null;
+let currentUser = JSON.parse(localStorage.getItem('hg_user') || 'null');
+let currentJobId = null;
+let appliedJobs = JSON.parse(localStorage.getItem('hg_applied') || '[]');
+
+window.onload = () => {
+  if (token && currentUser) enterApp();
+  else updateGreeting();
+};
+
+function updateGreeting() {
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const name = currentUser ? ' ' + currentUser.name.split(' ')[0] : '';
+  const el = document.getElementById('hero-greet');
+  if (el) el.textContent = g + name + ' 👋';
+}
+
+// ── AUTH TABS
+function showAuth(tab) { showPage('page-auth'); switchTab(tab); }
+function switchTab(tab) {
+  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('form-reg').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tb-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tb-reg').classList.toggle('active', tab === 'register');
+  hideAlert('auth-alert');
+}
+
+// ── LOGIN
+async function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass = document.getElementById('li-pass').value;
+  if (!email || !pass) return showAlert('auth-alert','error','Please fill in all fields.');
+  setLoading('li-btn', true, 'Log in');
+  try {
+    const res = await fetch(`${USER_URL}/api/auth/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password:pass})
+    });
+    const data = await res.json();
+    if (!res.ok) return showAlert('auth-alert','error', data.error || 'Login failed.');
+    saveSession(data.token, data.user);
+    enterApp();
+    toast('success', `Welcome back, ${data.user.name.split(' ')[0]}!`);
+  } catch(e) {
+    showAlert('auth-alert','error','Cannot reach User Service — is Docker running?');
+  } finally { setLoading('li-btn', false, 'Log in'); }
+}
+
+// ── REGISTER
+async function doRegister() {
+  const name = document.getElementById('rg-name').value.trim();
+  const email = document.getElementById('rg-email').value.trim();
+  const pass = document.getElementById('rg-pass').value;
+  if (!name||!email||!pass) return showAlert('auth-alert','error','Please fill in all fields.');
+  if (pass.length < 6) return showAlert('auth-alert','error','Password must be at least 6 characters.');
+  setLoading('rg-btn', true, 'Create account');
+  try {
+    const res = await fetch(`${USER_URL}/api/auth/register`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name, email, password:pass})
+    });
+    const data = await res.json();
+    if (!res.ok) return showAlert('auth-alert','error', data.error || 'Registration failed.');
+    saveSession(data.token, data.user);
+    enterApp();
+    toast('success', `Account created! Welcome, ${data.user.name.split(' ')[0]}! 🎉`);
+  } catch(e) {
+    showAlert('auth-alert','error','Cannot reach User Service — is Docker running?');
+  } finally { setLoading('rg-btn', false, 'Create account'); }
+}
+
+// ── SESSION
+function saveSession(t, user) {
+  token = t; currentUser = user;
+  localStorage.setItem('hg_token', t);
+  localStorage.setItem('hg_user', JSON.stringify(user));
+}
+function enterApp() {
+  document.getElementById('nav-auth').style.display = 'none';
+  document.getElementById('nav-app').style.display = 'flex';
+  document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('user-name-nav').textContent = currentUser.name.split(' ')[0];
+  updateGreeting();
+  goPage('browse');
+  loadJobs();
+}
+function logout() {
+  token = null; currentUser = null;
+  localStorage.removeItem('hg_token'); localStorage.removeItem('hg_user');
+  document.getElementById('nav-auth').style.display = 'flex';
+  document.getElementById('nav-app').style.display = 'none';
+  showPage('page-auth'); switchTab('login');
+}
+
+// ── PAGE NAV
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goPage(name) {
+  showPage('page-' + name);
+  ['browse','post'].forEach(n => document.getElementById('nl-'+n)?.classList.toggle('active', n===name));
+  if (name === 'browse') loadJobs();
+}
+
+// ── LOAD JOBS
+async function loadJobs() {
+  const c = document.getElementById('jobs-container');
+  c.innerHTML = `<div class="empty-state"><div class="spinner"></div><p style="margin-top:1rem">Loading...</p></div>`;
+  try {
+    const res = await fetch(`${JOB_URL}/api/jobs`);
+    const data = await res.json();
+    const jobs = data.jobs || [];
+    const cos = new Set(jobs.map(j => j.company)).size;
+    document.getElementById('st-jobs').textContent = jobs.length;
+    document.getElementById('st-cos').textContent = cos;
+    document.getElementById('st-apps').textContent = appliedJobs.length;
+    document.getElementById('jobs-sub').textContent = jobs.length === 0
+      ? 'No jobs yet — be the first to post one!'
+      : `${jobs.length} position${jobs.length !== 1 ? 's' : ''} available right now`;
+
+    if (!jobs.length) {
+      c.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">No jobs posted yet</div>
+        <p>Be the first to post a listing.</p>
+      </div>`;
+      return;
+    }
+    c.innerHTML = `<div class="jobs-grid">${jobs.map(jobCard).join('')}</div>`;
+  } catch(e) {
+    c.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-title">Job Service unreachable</div>
+      <p>Make sure <strong>docker compose up</strong> is running.</p>
+    </div>`;
+  }
+}
+
+function jobCard(job) {
+  const initials = job.company.substring(0,2).toUpperCase();
+  const applied = appliedJobs.includes(job.id);
+  return `
+  <div class="job-card" onclick="openJob(${job.id})">
+    <div class="job-card-top">
+      <div class="company-logo">${initials}</div>
+      ${applied ? `<span class="applied-badge">✓ Applied</span>` : `<span class="open-badge">OPEN</span>`}
+    </div>
+    <div class="job-title">${esc(job.title)}</div>
+    <div class="job-company">${esc(job.company)}</div>
+    <div class="job-desc">${esc(job.description || 'No description provided.')}</div>
+    <div class="job-footer">
+      <span class="job-meta">${timeAgo(job.created_at)}</span>
+      <span class="btn btn-ghost btn-sm" style="pointer-events:none">${applied ? '✓ Applied' : 'View & Apply →'}</span>
+    </div>
+  </div>`;
+}
+
+// ── OPEN JOB
+async function openJob(id) {
+  currentJobId = id;
+  hideAlert('modal-alert');
+  try {
+    const res = await fetch(`${JOB_URL}/api/jobs/${id}`);
+    const { job } = await res.json();
+    const applied = appliedJobs.includes(id);
+
+    document.getElementById('m-title').textContent = job.title;
+    document.getElementById('m-company').textContent = job.company;
+    document.getElementById('m-desc').textContent = job.description || 'No description provided.';
+    document.getElementById('m-tags').innerHTML = `
+      <span class="tag tag-purple">Open position</span>
+      <span class="tag tag-green">Full-time</span>
+      <span class="tag tag-amber">${timeAgo(job.created_at)}</span>`;
+
+    const btn = document.getElementById('m-apply-btn');
+    btn.textContent = applied ? '✓ Already Applied' : 'Apply Now';
+    btn.disabled = applied;
+
+    document.getElementById('modal-overlay').classList.add('open');
+  } catch(e) { toast('error','Could not load job details.'); }
+}
+function closeModal(e) { if (e.target.id === 'modal-overlay') closeModalDirect(); }
+function closeModalDirect() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+// ── APPLY
+async function doApply() {
+  if (!currentJobId) return;
+  hideAlert('modal-alert');
+  setLoading('m-apply-btn', true, 'Apply Now');
+  try {
+    const res = await fetch(`${JOB_URL}/api/jobs/${currentJobId}/apply`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) { showAlert('modal-alert','error', data.error || 'Application failed.'); return; }
+
+    appliedJobs.push(currentJobId);
+    localStorage.setItem('hg_applied', JSON.stringify(appliedJobs));
+    document.getElementById('st-apps').textContent = appliedJobs.length;
+
+    const btn = document.getElementById('m-apply-btn');
+    btn.textContent = '✓ Applied!'; btn.disabled = true;
+    showAlert('modal-alert','success','🎉 Application sent! Check your email — Kafka is delivering your confirmation.');
+    toast('success','Application submitted! Email confirmation incoming.');
+    loadJobs();
+  } catch(e) {
+    showAlert('modal-alert','error','Could not reach Job Service. Is Docker running?');
+  } finally { setLoading('m-apply-btn', false, 'Apply Now'); }
+}
+
+// ── POST JOB
+async function doPostJob() {
+  const title   = document.getElementById('p-title').value.trim();
+  const company = document.getElementById('p-company').value.trim();
+  const desc    = document.getElementById('p-desc').value.trim();
+  hideAlert('post-alert');
+  if (!title||!company) return showAlert('post-alert','error','Title and company are required.');
+  setLoading('post-btn', true, 'Publish Job Listing');
+  try {
+    const res = await fetch(`${JOB_URL}/api/jobs`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      body: JSON.stringify({title, company, description:desc})
+    });
+    const data = await res.json();
+    if (!res.ok) return showAlert('post-alert','error', data.error || 'Failed to post job.');
+    showAlert('post-alert','success',`✓ "${title}" at ${company} is now live!`);
+    document.getElementById('p-title').value = '';
+    document.getElementById('p-company').value = '';
+    document.getElementById('p-desc').value = '';
+    toast('success','Job posted successfully!');
+  } catch(e) {
+    showAlert('post-alert','error','Cannot reach Job Service. Is Docker running?');
+  } finally { setLoading('post-btn', false, 'Publish Job Listing'); }
+}
+
+// ── HELPERS
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = `alert alert-${type} show`;
+  el.textContent = (type==='success'?'✓  ':'⚠  ') + msg;
+}
+function hideAlert(id) { const el = document.getElementById(id); if(el) el.className='alert'; }
+
+function setLoading(id, loading, original) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? `<span class="spinner" style="width:16px;height:16px;border-width:2px"></span> Loading...`
+    : original;
+}
+
+function toast(type, msg) {
+  const w = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:15px">${type==='success'?'✓':'⚠'}</span><span>${msg}</span>`;
+  w.appendChild(t);
+  setTimeout(() => t.remove(), 4500);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function timeAgo(d) {
+  if (!d) return 'Just now';
+  const m = Math.floor((Date.now() - new Date(d)) / 60000);
+  if (m < 1) return 'Just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+}
+</script>
+</body>
+</html>
